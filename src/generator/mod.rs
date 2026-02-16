@@ -1,5 +1,7 @@
+pub mod adsr;
 pub mod ramp;
 
+pub use adsr::{AdsrGenerator, AdsrPhase};
 pub use ramp::RampGenerator;
 
 /// Represents the current state of a signal generator
