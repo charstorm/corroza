@@ -8,5 +8,5 @@ plotters-svg = "0.3"
 plotters = { version = "0.3", default-features = false, features = ["svg_backend", "line_series"] }
 
 [[bin]]
-name = "visualize"
-path = "src/bin/visualize.rs"
+name = "plot-adsr"
+path = "src/bin/plot-adsr.rs"

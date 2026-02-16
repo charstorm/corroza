@@ -4,18 +4,14 @@ use corroza::generator::{GeneratorState, RampGenerator, SignalGenerator};
 fn demo_ramp() {
     println!("\n=== Ramp Generator Demo ===\n");
 
-    // Create a 100ms ramp at 44.1kHz
-    let sample_rate = 44100.0;
-    let duration_ms = 100.0;
+    // Create a 4410-sample ramp (100ms at 44.1kHz)
+    let duration_samples = 4410;
     let frame_size = 64; // Process in 64-sample frames
 
-    let mut ramp = RampGenerator::new(duration_ms, sample_rate);
-    let total_samples = ramp.duration();
+    let mut ramp = RampGenerator::new(duration_samples);
 
     println!("Configuration:");
-    println!("  Sample rate: {} Hz", sample_rate);
-    println!("  Duration: {} ms", duration_ms);
-    println!("  Total samples: {}", total_samples);
+    println!("  Duration: {} samples", duration_samples);
     println!("  Frame size: {} samples", frame_size);
     println!();
 
@@ -34,7 +30,7 @@ fn demo_ramp() {
                 "Frame {} (samples {}-{}): [",
                 frame_count,
                 start_sample,
-                (start_sample + frame_size).min(total_samples)
+                (start_sample + frame_size).min(duration_samples)
             );
 
             // Show up to 5 samples from the frame
@@ -52,7 +48,7 @@ fn demo_ramp() {
         } else if frame_count == 4 {
             println!(
                 "  ... (processing {} more frames) ...",
-                (total_samples / frame_size) - 6
+                (duration_samples / frame_size) - 6
             );
         }
 
@@ -82,27 +78,25 @@ fn demo_ramp() {
 fn demo_adsr() {
     println!("\n=== ADSR Envelope Generator Demo ===\n");
 
-    let sample_rate = 44100.0;
     let frame_size = 64;
 
-    // Create ADSR: 100ms attack, 200ms decay, 70% sustain, 2s max sustain, 300ms release
+    // Create ADSR: 4410 samples attack, 8820 samples decay, 70% sustain,
+    // 88200 samples max sustain (2s at 44.1kHz), 13230 samples release
     let mut adsr = AdsrGenerator::new(
-        0.0,    // initial amplitude
-        100.0,  // attack: 100ms
-        200.0,  // decay: 200ms
-        0.7,    // sustain: 70%
-        2000.0, // max sustain: 2 seconds
-        300.0,  // release: 300ms
-        sample_rate,
+        0.0,   // initial amplitude
+        4410,  // attack: 100ms at 44.1kHz
+        8820,  // decay: 200ms at 44.1kHz
+        0.7,   // sustain: 70%
+        88200, // max sustain: 2 seconds at 44.1kHz
+        13230, // release: 300ms at 44.1kHz
     );
 
     println!("Configuration:");
-    println!("  Attack: 100ms");
-    println!("  Decay: 200ms");
+    println!("  Attack: 4410 samples");
+    println!("  Decay: 8820 samples");
     println!("  Sustain: 70%");
-    println!("  Max Sustain: 2 seconds");
-    println!("  Release: 300ms");
-    println!("  Sample Rate: {} Hz", sample_rate);
+    println!("  Max Sustain: 88200 samples");
+    println!("  Release: 13230 samples");
     println!("  Frame Size: {} samples", frame_size);
     println!();
 
@@ -162,13 +156,10 @@ fn demo_adsr() {
     println!("\n--- Early Release Demo ---\n");
 
     let mut adsr2 = AdsrGenerator::new(
-        0.0,
-        500.0,
-        500.0,
-        0.5,
-        2000.0,
-        300.0, // Longer attack/decay
-        sample_rate,
+        0.0, 22050, // 500ms at 44.1kHz
+        22050, // 500ms at 44.1kHz
+        0.5, 88200, // 2s at 44.1kHz
+        13230, // 300ms at 44.1kHz
     );
 
     println!("Triggering note_off during Attack phase:");

@@ -17,20 +17,18 @@ impl RampGenerator {
     /// Create a new ramp generator
     ///
     /// # Arguments
-    /// * `duration_ms` - Duration of the ramp in milliseconds
-    /// * `sample_rate` - Sample rate in Hz (e.g., 44100.0, 48000.0)
+    /// * `duration_samples` - Duration of the ramp in samples
     ///
     /// # Example
     /// ```
     /// use corroza::generator::RampGenerator;
     ///
-    /// let ramp = RampGenerator::new(1000.0, 44100.0); // 1 second ramp at 44.1kHz
+    /// let ramp = RampGenerator::new(44100); // 1 second ramp at 44.1kHz
     /// ```
-    pub fn new(duration_ms: f32, sample_rate: f32) -> Self {
-        let duration = ((duration_ms / 1000.0) * sample_rate) as usize;
+    pub fn new(duration_samples: usize) -> Self {
         Self {
             position: 0,
-            duration: duration.max(1), // Ensure at least 1 sample
+            duration: duration_samples.max(1), // Ensure at least 1 sample
             completed: false,
         }
     }
@@ -96,8 +94,8 @@ mod tests {
 
     #[test]
     fn test_ramp_basic() {
-        // Create a 10ms ramp at 1000Hz = 10 samples
-        let mut ramp = RampGenerator::new(10.0, 1000.0);
+        // Create a 10-sample ramp
+        let mut ramp = RampGenerator::new(10);
 
         let mut buffer = [0.0f32; 5];
 
@@ -121,7 +119,7 @@ mod tests {
 
     #[test]
     fn test_ramp_reset() {
-        let mut ramp = RampGenerator::new(10.0, 1000.0);
+        let mut ramp = RampGenerator::new(10);
         let mut buffer = [0.0f32; 10];
 
         // Process to completion
@@ -142,7 +140,7 @@ mod tests {
 
     #[test]
     fn test_ramp_post_completion() {
-        let mut ramp = RampGenerator::new(5.0, 1000.0); // 5 samples
+        let mut ramp = RampGenerator::new(5); // 5 samples
         let mut buffer = [0.0f32; 10]; // Larger frame
 
         // Process - should complete

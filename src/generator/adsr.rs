@@ -44,45 +44,40 @@ impl AdsrGenerator {
     ///
     /// # Arguments
     /// * `initial_amplitude` - Starting amplitude (typically 0.0)
-    /// * `attack_ms` - Attack phase duration in milliseconds
-    /// * `decay_ms` - Decay phase duration in milliseconds
+    /// * `attack_samples` - Attack phase duration in samples
+    /// * `decay_samples` - Decay phase duration in samples
     /// * `sustain_level` - Sustain phase amplitude level (0.0 to 1.0)
-    /// * `sustain_max_ms` - Maximum sustain duration (default: 2000.0 ms)
-    /// * `release_ms` - Release phase duration in milliseconds
-    /// * `sample_rate` - Sample rate in Hz
+    /// * `sustain_max_samples` - Maximum sustain duration in samples
+    /// * `release_samples` - Release phase duration in samples
     ///
     /// # Example
     /// ```
     /// use corroza::generator::adsr::AdsrGenerator;
     ///
     /// let adsr = AdsrGenerator::new(
-    ///     0.0,      // initial amplitude
-    ///     100.0,    // attack: 100ms
-    ///     200.0,    // decay: 200ms
-    ///     0.7,      // sustain: 70% amplitude
-    ///     2000.0,   // max sustain: 2 seconds
-    ///     500.0,    // release: 500ms
-    ///     44100.0,  // sample rate
+    ///     0.0,       // initial amplitude
+    ///     4410,      // attack: 100ms at 44.1kHz
+    ///     8820,      // decay: 200ms at 44.1kHz
+    ///     0.7,       // sustain: 70% amplitude
+    ///     88200,     // max sustain: 2 seconds at 44.1kHz
+    ///     22050,     // release: 500ms at 44.1kHz
     /// );
     /// ```
     pub fn new(
         initial_amplitude: f32,
-        attack_ms: f32,
-        decay_ms: f32,
+        attack_samples: usize,
+        decay_samples: usize,
         sustain_level: f32,
-        sustain_max_ms: f32,
-        release_ms: f32,
-        sample_rate: f32,
+        sustain_max_samples: usize,
+        release_samples: usize,
     ) -> Self {
-        let samples_from_ms = |ms: f32| ((ms / 1000.0) * sample_rate) as usize;
-
         Self {
             initial_amplitude: initial_amplitude.clamp(0.0, 1.0),
-            attack_duration: samples_from_ms(attack_ms).max(1),
-            decay_duration: samples_from_ms(decay_ms).max(1),
+            attack_duration: attack_samples.max(1),
+            decay_duration: decay_samples.max(1),
             sustain_level: sustain_level.clamp(0.0, 1.0),
-            sustain_max_duration: samples_from_ms(sustain_max_ms).max(1),
-            release_duration: samples_from_ms(release_ms).max(1),
+            sustain_max_duration: sustain_max_samples.max(1),
+            release_duration: release_samples.max(1),
             phase: AdsrPhase::Attack,
             position: 0,
             sustain_position: 0,
@@ -299,31 +294,28 @@ impl SignalGenerator for AdsrGenerator {
 mod tests {
     use super::*;
 
-    const SAMPLE_RATE: f32 = 1000.0; // 1ms = 1 sample for easy testing
-
     fn create_adsr(
         initial: f32,
-        attack_ms: f32,
-        decay_ms: f32,
+        attack_samples: usize,
+        decay_samples: usize,
         sustain: f32,
-        sustain_max_ms: f32,
-        release_ms: f32,
+        sustain_max_samples: usize,
+        release_samples: usize,
     ) -> AdsrGenerator {
         AdsrGenerator::new(
             initial,
-            attack_ms,
-            decay_ms,
+            attack_samples,
+            decay_samples,
             sustain,
-            sustain_max_ms,
-            release_ms,
-            SAMPLE_RATE,
+            sustain_max_samples,
+            release_samples,
         )
     }
 
     #[test]
     fn test_adsr_full_envelope() {
-        // 100ms attack, 100ms decay, 50% sustain, 100ms release
-        let mut adsr = create_adsr(0.0, 100.0, 100.0, 0.5, 2000.0, 100.0);
+        // 100 samples attack, 100 samples decay, 50% sustain, 100 samples release
+        let mut adsr = create_adsr(0.0, 100, 100, 0.5, 2000, 100);
         let mut buffer = [0.0f32; 100];
 
         // Attack phase: 0.0 -> 1.0 over 100 samples
@@ -370,7 +362,7 @@ mod tests {
 
     #[test]
     fn test_amplitude_bounds() {
-        let mut adsr = create_adsr(0.0, 100.0, 100.0, 0.5, 2000.0, 100.0);
+        let mut adsr = create_adsr(0.0, 100, 100, 0.5, 2000, 100);
         let mut buffer = [0.0f32; 50];
 
         // Process entire envelope in small chunks and check bounds
@@ -390,7 +382,7 @@ mod tests {
 
     #[test]
     fn test_no_discontinuity_at_transitions() {
-        let mut adsr = create_adsr(0.0, 100.0, 100.0, 0.5, 2000.0, 100.0);
+        let mut adsr = create_adsr(0.0, 100, 100, 0.5, 2000, 100);
         let mut buffer = [0.0f32; 100];
 
         // Attack -> Decay
@@ -430,7 +422,7 @@ mod tests {
 
     #[test]
     fn test_early_release_during_attack() {
-        let mut adsr = create_adsr(0.0, 100.0, 100.0, 0.5, 2000.0, 100.0);
+        let mut adsr = create_adsr(0.0, 100, 100, 0.5, 2000, 100);
         let mut buffer = [0.0f32; 50];
 
         // Process first half of attack (0.0 -> 0.5)
@@ -454,7 +446,7 @@ mod tests {
 
     #[test]
     fn test_early_release_during_decay() {
-        let mut adsr = create_adsr(0.0, 100.0, 100.0, 0.5, 2000.0, 100.0);
+        let mut adsr = create_adsr(0.0, 100, 100, 0.5, 2000, 100);
         let mut buffer = [0.0f32; 100];
 
         // Complete attack
@@ -483,8 +475,8 @@ mod tests {
 
     #[test]
     fn test_sustain_max_duration() {
-        // 10ms sustain max
-        let mut adsr = create_adsr(0.0, 10.0, 10.0, 0.5, 10.0, 10.0);
+        // 10 samples sustain max
+        let mut adsr = create_adsr(0.0, 10, 10, 0.5, 10, 10);
         let mut buffer = [0.0f32; 10];
 
         // Attack
@@ -503,8 +495,8 @@ mod tests {
 
     #[test]
     fn test_custom_sustain_max() {
-        // 5ms sustain max instead of default
-        let mut adsr = create_adsr(0.0, 10.0, 10.0, 0.5, 5.0, 10.0);
+        // 5 samples sustain max instead of default
+        let mut adsr = create_adsr(0.0, 10, 10, 0.5, 5, 10);
         let mut buffer = [0.0f32; 10];
 
         // Attack + Decay (20 samples)
@@ -523,7 +515,7 @@ mod tests {
     #[test]
     fn test_initial_amplitude() {
         // Start from 0.5 instead of 0
-        let mut adsr = create_adsr(0.5, 100.0, 100.0, 0.5, 2000.0, 100.0);
+        let mut adsr = create_adsr(0.5, 100, 100, 0.5, 2000, 100);
         let mut buffer = [0.0f32; 10];
 
         adsr.process(&mut buffer);
@@ -536,7 +528,7 @@ mod tests {
     #[test]
     fn test_zero_durations() {
         // Zero attack (should still have 1 sample minimum)
-        let mut adsr = create_adsr(0.0, 0.0, 100.0, 0.5, 2000.0, 100.0);
+        let mut adsr = create_adsr(0.0, 0, 100, 0.5, 2000, 100);
         let mut buffer = [0.0f32; 10];
 
         adsr.process(&mut buffer);
@@ -547,7 +539,7 @@ mod tests {
     #[test]
     fn test_sustain_level_edge_cases() {
         // Sustain level = 0
-        let mut adsr = create_adsr(0.0, 10.0, 10.0, 0.0, 2000.0, 10.0);
+        let mut adsr = create_adsr(0.0, 10, 10, 0.0, 2000, 10);
         let mut buffer = [0.0f32; 10];
 
         adsr.process(&mut buffer); // Attack
@@ -557,7 +549,7 @@ mod tests {
         assert_eq!(adsr.current_amplitude(), 0.0);
 
         // Sustain level = 1.0 (same as peak)
-        let mut adsr2 = create_adsr(0.0, 10.0, 10.0, 1.0, 2000.0, 10.0);
+        let mut adsr2 = create_adsr(0.0, 10, 10, 1.0, 2000, 10);
         adsr2.process(&mut buffer); // Attack
         adsr2.process(&mut buffer); // Decay (should stay at 1.0)
         adsr2.process(&mut buffer); // Sustain
@@ -567,7 +559,7 @@ mod tests {
 
     #[test]
     fn test_reset() {
-        let mut adsr = create_adsr(0.0, 100.0, 100.0, 0.5, 2000.0, 100.0);
+        let mut adsr = create_adsr(0.0, 100, 100, 0.5, 2000, 100);
         let mut buffer = [0.0f32; 100];
 
         // Process through to completion
@@ -586,7 +578,7 @@ mod tests {
 
     #[test]
     fn test_frame_boundary_event_processing() {
-        let mut adsr = create_adsr(0.0, 100.0, 100.0, 0.5, 2000.0, 100.0);
+        let mut adsr = create_adsr(0.0, 100, 100, 0.5, 2000, 100);
         let mut buffer = [0.0f32; 100];
 
         // Start attack
@@ -619,7 +611,7 @@ mod tests {
         ];
 
         for (initial, progress) in test_cases {
-            let mut adsr = create_adsr(initial, 100.0, 100.0, 0.5, 2000.0, 100.0);
+            let mut adsr = create_adsr(initial, 100, 100, 0.5, 2000, 100);
             let buffer_size = (100.0 * progress) as usize;
             let mut buffer = vec![0.0f32; buffer_size];
 
@@ -647,7 +639,7 @@ mod tests {
 
     #[test]
     fn test_final_value_reached() {
-        let mut adsr = create_adsr(0.0, 10.0, 10.0, 0.5, 2000.0, 10.0);
+        let mut adsr = create_adsr(0.0, 10, 10, 0.5, 2000, 10);
         let mut buffer = [0.0f32; 10];
 
         // Run through entire envelope
