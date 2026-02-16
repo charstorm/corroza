@@ -4,3 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+plotters-svg = "0.3"
+plotters = { version = "0.3", default-features = false, features = ["svg_backend", "line_series"] }
+
+[[bin]]
+name = "visualize"
+path = "src/bin/visualize.rs"

@@ -24,6 +24,7 @@ pub struct AdsrGenerator {
     position: usize,
     sustain_position: usize,
     current_amplitude: f32,
+    release_start_amplitude: f32,
 
     // Event queue
     pending_note_off: bool,
@@ -86,6 +87,7 @@ impl AdsrGenerator {
             position: 0,
             sustain_position: 0,
             current_amplitude: initial_amplitude.clamp(0.0, 1.0),
+            release_start_amplitude: 0.0,
             pending_note_off: false,
         }
     }
@@ -122,6 +124,7 @@ impl AdsrGenerator {
             match self.phase {
                 AdsrPhase::Attack | AdsrPhase::Decay | AdsrPhase::Sustain => {
                     self.phase = AdsrPhase::Release;
+                    self.release_start_amplitude = self.current_amplitude;
                     self.position = 0;
                 }
                 _ => {}
@@ -131,6 +134,7 @@ impl AdsrGenerator {
         // Check sustain max duration
         if self.phase == AdsrPhase::Sustain && self.sustain_position >= self.sustain_max_duration {
             self.phase = AdsrPhase::Release;
+            self.release_start_amplitude = self.current_amplitude;
             self.position = 0;
         }
     }
@@ -148,14 +152,18 @@ impl AdsrGenerator {
                 self.current_amplitude = start_amp + (end_amp - start_amp) * t;
                 *sample = self.current_amplitude;
             } else {
-                // Transition to Decay
-                self.current_amplitude = end_amp;
-                *sample = end_amp;
+                // Attack complete - transition to Decay and process remaining samples
+                self.phase = AdsrPhase::Decay;
+                self.position = 0;
+                // Process remaining buffer as Decay
+                self.process_decay(&mut buffer[i..]);
+                return GeneratorState::Running;
             }
         }
 
         self.position += buffer.len();
 
+        // Check if we completed the phase exactly at frame end
         if self.position >= total_samples {
             self.phase = AdsrPhase::Decay;
             self.position = 0;
@@ -177,14 +185,19 @@ impl AdsrGenerator {
                 self.current_amplitude = start_amp + (end_amp - start_amp) * t;
                 *sample = self.current_amplitude;
             } else {
-                // Transition to Sustain
-                self.current_amplitude = end_amp;
-                *sample = end_amp;
+                // Decay complete - transition to Sustain and process remaining samples
+                self.phase = AdsrPhase::Sustain;
+                self.position = 0;
+                self.sustain_position = 0;
+                // Process remaining buffer as Sustain
+                self.process_sustain(&mut buffer[i..]);
+                return GeneratorState::Running;
             }
         }
 
         self.position += buffer.len();
 
+        // Check if we completed the phase exactly at frame end
         if self.position >= total_samples {
             self.phase = AdsrPhase::Sustain;
             self.position = 0;
@@ -214,7 +227,7 @@ impl AdsrGenerator {
 
     /// Generate samples for the Release phase
     fn process_release(&mut self, buffer: &mut [f32]) -> GeneratorState {
-        let start_amp = self.current_amplitude;
+        let start_amp = self.release_start_amplitude;
         let end_amp = 0.0f32;
         let total_samples = self.release_duration;
 
@@ -225,20 +238,25 @@ impl AdsrGenerator {
                 self.current_amplitude = start_amp + (end_amp - start_amp) * t;
                 *sample = self.current_amplitude;
             } else {
-                // Transition to Complete
+                // Release complete - transition to Complete and fill remaining with zeros
+                self.phase = AdsrPhase::Complete;
                 self.current_amplitude = end_amp;
-                *sample = end_amp;
+                for j in i..buffer.len() {
+                    buffer[j] = end_amp;
+                }
+                return GeneratorState::Complete;
             }
         }
 
         self.position += buffer.len();
 
+        // Check if we completed the phase exactly at frame end
         if self.position >= total_samples {
             self.phase = AdsrPhase::Complete;
-            GeneratorState::Complete
-        } else {
-            GeneratorState::Running
+            return GeneratorState::Complete;
         }
+
+        GeneratorState::Running
     }
 }
 
@@ -272,6 +290,7 @@ impl SignalGenerator for AdsrGenerator {
         self.position = 0;
         self.sustain_position = 0;
         self.current_amplitude = self.initial_amplitude;
+        self.release_start_amplitude = 0.0;
         self.pending_note_off = false;
     }
 }
