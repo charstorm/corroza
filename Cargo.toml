@@ -10,3 +10,7 @@ plotters = { version = "0.3", default-features = false, features = ["svg_backend
 [[bin]]
 name = "plot-adsr"
 path = "src/bin/plot-adsr.rs"
+
+[[bin]]
+name = "fm-synth"
+path = "src/bin/fm-synth.rs"

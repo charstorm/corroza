@@ -112,6 +112,16 @@ impl AdsrGenerator {
         self.phase == AdsrPhase::Complete
     }
 
+    /// Get the total maximum duration of the envelope in samples
+    ///
+    /// This is the sum of attack + decay + sustain_max + release durations
+    pub fn total_samples(&self) -> usize {
+        self.attack_duration
+            + self.decay_duration
+            + self.sustain_max_duration
+            + self.release_duration
+    }
+
     /// Process pending events at frame boundary
     fn process_events(&mut self) {
         if self.pending_note_off {

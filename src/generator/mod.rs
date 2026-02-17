@@ -1,7 +1,9 @@
 pub mod adsr;
+pub mod fm_synth;
 pub mod ramp;
 
 pub use adsr::{AdsrGenerator, AdsrPhase};
+pub use fm_synth::{FmSynthGenerator, FmSynthParams};
 pub use ramp::RampGenerator;
 
 /// Represents the current state of a signal generator
