@@ -86,7 +86,7 @@ fn main() {
     let config = PipelineConfig {
         sample_rate: 44100,
         frame_size: 64,
-        timestep_samples: 1000, // ≈22.7ms at 44.1kHz
+        timestep_samples: 11025, // 250ms at 44.1kHz (roughly 1/4 note at 120 BPM)
         voice_config,
         base_frequency: 110.0, // 1C = 110 Hz
     };
