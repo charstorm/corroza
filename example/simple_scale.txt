@@ -1,32 +1,56 @@
 # Simple Scale - C Major ascending and descending
-# Format: +<timestep>| note1, note2
+# Format: +<timestep>| <note>
 # Notes: <octave><note><accidental><direction> where d=down, u=up
 # Base: 1C = 110Hz
 
 # C major scale ascending (C4 to C5)
-+1| 4cd, 4cu     # C4
-+1| 4dd, 4du    # D4
-+1| 4ed, 4eu    # E4
-+1| 4fd, 4fu    # F4
-+1| 4gd, 4gu    # G4
-+1| 4ad, 4au    # A4
-+1| 4bd, 4bu    # B4
-+1| 5cd, 5cu    # C5
++0| 4cd     # C4 down
++1| 4cu     # C4 up
++1| 4dd     # D4 down
++1| 4du     # D4 up
++1| 4ed     # E4 down
++1| 4eu     # E4 up
++1| 4fd     # F4 down
++1| 4fu     # F4 up
++1| 4gd     # G4 down
++1| 4gu     # G4 up
++1| 4ad     # A4 down
++1| 4au     # A4 up
++1| 4bd     # B4 down
++1| 4bu     # B4 up
++1| 5cd     # C5 down
++1| 5cu     # C5 up
 
 # C major scale descending
-+1| 5cd, 5cu    # C5
-+1| 4bd, 4bu    # B4
-+1| 4ad, 4au    # A4
-+1| 4gd, 4gu    # G4
-+1| 4fd, 4fu    # F4
-+1| 4ed, 4eu    # E4
-+1| 4dd, 4du    # D4
-+1| 4cd, 4cu    # C4
++1| 5cd     # C5 down
++1| 5cu     # C5 up
++1| 4bd     # B4 down
++1| 4bu     # B4 up
++1| 4ad     # A4 down
++1| 4au     # A4 up
++1| 4gd     # G4 down
++1| 4gu     # G4 up
++1| 4fd     # F4 down
++1| 4fu     # F4 up
++1| 4ed     # E4 down
++1| 4eu     # E4 up
++1| 4dd     # D4 down
++1| 4du     # D4 up
++1| 4cd     # C4 down
++1| 4cu     # C4 up
 
-# Simple chord - C major
-+1| 4cd, 4ed, 4gd    # C major chord (C4, E4, G4) - all down
-+2| 4cu, 4eu, 4gu   # hold for 2 timesteps, then release
+# Simple chord - C major (multiple notes down at once)
++1| 4cd     # C4 down
++1| 4ed     # E4 down
++1| 4gd     # G4 down (all 3 notes down)
++2| 4cu     # hold for 2 timesteps, then release C4
++1| 4eu     # release E4
++1| 4gu     # release G4
 
 # Simple chord - G major
-+1| 4gd, 4bd, 5dd   # G major chord (G4, B4, D5)
-+2| 4gu, 4bu, 5du
++1| 4gd     # G4 down
++1| 4bd     # B4 down
++1| 5dd     # D5 down (all 3 notes down)
++2| 4gu     # hold for 2 timesteps, then release G4
++1| 4bu     # release B4
++1| 5du     # release D5

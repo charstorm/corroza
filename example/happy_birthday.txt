@@ -1,27 +1,43 @@
 # Happy Birthday - Transcription for Corroza
-# Format: +<timestep>| note1, note2
+# Format: +<timestep>| <note>
 # Notes: <octave><note><accidental><direction> where d=down, u=up
 # Base: 1C = 110Hz (so 4c = C4 = 261.63Hz)
 
 # "Happy Birthday to You"
-# First line (4 beats)
+# First line (4 beats) - each note is 1 beat (timestep), with down and up separate
 
-+1| 4gd, 4gu    # Happy - G4 down, up
-+1| 4ad, 4au   # birth- A4 down, up
-+1| 4gd, 4gu   # day to - G4 down, up
-+1| 5cd, 5cu   # you   - C5 down, up
++0| 4gd     # Happy - G4 down
++1| 4gu     # (space for G4 up)
++1| 4ad     # birth- A4 down
++1| 4au     # (space for A4 up)
++1| 4gd     # day to - G4 down
++1| 4gu     # (space for G4 up)
++1| 5cd     # you   - C5 down
++1| 5cu     # (space for C5 up)
 
-+1| 4bd, 4bu   # Happy - B4 down, up
-+1| 4ad, 4au   # birth- A4 down, up
-+1| 4gd, 4gu   # day to - G4 down, up
-+1| 5dd, 5du   # you   - D5 down, up
++1| 4bd     # Happy - B4 down
++1| 4bu     # (space for B4 up)
++1| 4ad     # birth- A4 down
++1| 4au     # (space for A4 up)
++1| 4gd     # day to - G4 down
++1| 4gu     # (space for G4 up)
++1| 5dd     # you   - D5 down
++1| 5du     # (space for D5 up)
 
-+1| 4gd, 4gu   # Happy - G4 down, up
-+1| 5ed, 5eu   # birth- E5 down, up
-+1| 5cd, 5cu   # day to - C5 down, up
-+1| 4bd, 4bu   # you   - B4 down, up
++1| 4gd     # Happy - G4 down
++1| 4gu     # (space for G4 up)
++1| 5ed     # birth- E5 down
++1| 5eu     # (space for E5 up)
++1| 5cd     # day to - C5 down
++1| 5cu     # (space for C5 up)
++1| 4bd     # you   - B4 down
++1| 4bu     # (space for B4 up)
 
-+1| 5ad, 5au   # Happy - A5 down, up
-+1| 4gd, 4gu   # birth- G4 down, up
-+1| 5cd, 5cu   # day to - C5 down, up
-+1| 5dd, 5du   # you   - D5 down, up
++1| 5ad     # Happy - A5 down
++1| 5au     # (space for A5 up)
++1| 4gd     # birth- G4 down
++1| 4gu     # (space for G4 up)
++1| 5cd     # day to - C5 down
++1| 5cu     # (space for C5 up)
++1| 5dd     # you   - D5 down
++1| 5du     # (space for D5 up)

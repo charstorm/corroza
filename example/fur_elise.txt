@@ -1,44 +1,76 @@
 # Fur Elise (simplified) - Transcription for Corroza
-# Format: +<timestep>| note1, note2
+# Format: +<timestep>| <note>
 # Notes: <octave><note><accidental><direction> where d=down, u=up
 # Base: 1C = 110Hz
 
 # Opening motif (E5 D#5 E5 D#5 E5 B4 D5 C5)
-+1| 5ed, 5eu     # E5
-+1| 4d#d, 4d#u   # D#5
-+1| 5ed, 5eu     # E5
-+1| 4d#d, 4d#u   # D#5
-+1| 5ed, 5eu     # E5
-+1| 4bd, 4bu     # B4
-+1| 5dd, 5du     # D5
-+1| 5cd, 5cu     # C5
++0| 5ed     # E5 down
++1| 5eu     # E5 up
++1| 4d#d    # D#5 down
++1| 4d#u    # D#5 up
++1| 5ed     # E5 down
++1| 5eu     # E5 up
++1| 4d#d    # D#5 down
++1| 4d#u    # D#5 up
++1| 5ed     # E5 down
++1| 5eu     # E5 up
++1| 4bd     # B4 down
++1| 4bu     # B4 up
++1| 5dd     # D5 down
++1| 5du     # D5 up
++1| 5cd     # C5 down
++1| 5cu     # C5 up
 
 # Section A continued
-+1| 4bd, 4bu     # B4
-+1| 4ad, 4au    # A4
-+1| 4cd, 4cu    # C5
-+1| 4bd, 4bu    # B4
-+1| 4g#d, 4g#u  # G#4
-+1| 4ad, 4au    # A4
-+1| 4bd, 4bu     # B4
-+1| 4ad, 4au    # A4
++1| 4bd     # B4 down
++1| 4bu     # B4 up
++1| 4ad     # A4 down
++1| 4au     # A4 up
++1| 4cd     # C5 down
++1| 4cu     # C5 up
++1| 4bd     # B4 down
++1| 4bu     # B4 up
++1| 4g#d    # G#4 down
++1| 4g#u    # G#4 up
++1| 4ad     # A4 down
++1| 4au     # A4 up
++1| 4bd     # B4 down
++1| 4bu     # B4 up
++1| 4ad     # A4 down
++1| 4au     # A4 up
 
 # Main theme variation
-+1| 4g#d, 4g#u  # G#4
-+1| 4cd, 4cu   # C5
-+1| 5dd, 5du   # D5
-+1| 5ed, 5eu   # E5
-+1| 5fd, 5fu   # F5
-+1| 5ed, 5eu   # E5
-+1| 5dd, 5du   # D5
-+1| 5c#d, 5c#u # C#5
++1| 4g#d    # G#4 down
++1| 4g#u    # G#4 up
++1| 4cd     # C5 down
++1| 4cu     # C5 up
++1| 5dd     # D5 down
++1| 5du     # D5 up
++1| 5ed     # E5 down
++1| 5eu     # E5 up
++1| 5fd     # F5 down
++1| 5fu     # F5 up
++1| 5ed     # E5 down
++1| 5eu     # E5 up
++1| 5dd     # D5 down
++1| 5du     # D5 up
++1| 5c#d    # C#5 down
++1| 5c#u    # C#5 up
 
 # Ending phrase
-+1| 4bd, 4bu   # B4
-+1| 4g#d, 4g#u # G#4
-+1| 4ad, 4au   # A4
-+1| 4bd, 4bu   # B4
-+1| 4cd, 4cu   # C5
-+1| 5dd, 5du   # D5
-+1| 5ed, 5eu   # E5
-+1| 5c#d, 5c#u # C#5
++1| 4bd     # B4 down
++1| 4bu     # B4 up
++1| 4g#d    # G#4 down
++1| 4g#u    # G#4 up
++1| 4ad     # A4 down
++1| 4au     # A4 up
++1| 4bd     # B4 down
++1| 4bu     # B4 up
++1| 4cd     # C5 down
++1| 4cu     # C5 up
++1| 5dd     # D5 down
++1| 5du     # D5 up
++1| 5ed     # E5 down
++1| 5eu     # E5 up
++1| 5c#d    # C#5 down
++1| 5c#u    # C#5 up
