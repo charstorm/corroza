@@ -162,4 +162,36 @@ mod tests {
         // Clean up
         fs::remove_file(temp_path).unwrap();
     }
+
+    #[test]
+    fn test_write_wav_nan_inf_handling() {
+        let temp_path = "/tmp/test_nan_inf.wav";
+        let samples = vec![
+            0.0f32,
+            1.0,
+            f32::NAN,
+            f32::INFINITY,
+            f32::NEG_INFINITY,
+            -1.0,
+        ];
+        write_wav_16bit(temp_path, &samples, 16000).unwrap();
+
+        let data = fs::read(temp_path).unwrap();
+
+        let sample0 = i16::from_le_bytes([data[44], data[45]]);
+        let sample1 = i16::from_le_bytes([data[46], data[47]]);
+        let sample2 = i16::from_le_bytes([data[48], data[49]]); // NaN
+        let sample3 = i16::from_le_bytes([data[50], data[51]]); // Inf
+        let sample4 = i16::from_le_bytes([data[52], data[53]]); // -Inf
+        let sample5 = i16::from_le_bytes([data[54], data[55]]);
+
+        assert_eq!(sample0, 0);
+        assert_eq!(sample1, i16::MAX);
+        assert_eq!(sample2, 0); // NaN should become 0
+        assert_eq!(sample3, i16::MAX); // Inf should clamp to max
+        assert_eq!(sample4, i16::MIN); // -Inf should clamp to min
+        assert_eq!(sample5, i16::MIN);
+
+        fs::remove_file(temp_path).unwrap();
+    }
 }

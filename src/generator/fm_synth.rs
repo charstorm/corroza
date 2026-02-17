@@ -189,12 +189,17 @@ impl SignalGenerator for FmSynthGenerator {
             let wav_env_val = wav_env_buffer[i];
 
             // 3. Instantaneous frequency: f[n] = g * (1 + m[n] * mod_depth * e[n])
-            let inst_freq = self.params.phase_per_sample
-                * (1.0 + modulation * self.params.mod_depth * mod_env_val);
+            let modulation_factor = modulation * self.params.mod_depth * mod_env_val;
+            let inst_freq = self.params.phase_per_sample * (1.0 + modulation_factor).max(0.0);
 
             // 4. Phase accumulation with wrapping to [0, 2π)
             self.phase += two_pi * inst_freq;
-            self.phase = self.phase % two_pi;
+            while self.phase >= two_pi {
+                self.phase -= two_pi;
+            }
+            while self.phase < 0.0 {
+                self.phase += two_pi;
+            }
 
             // 5. Final output: y[n] = sin(θ[n]) * E[n]
             *sample = self.phase.sin() * wav_env_val;
@@ -613,5 +618,23 @@ mod tests {
         }
 
         assert!(has_output, "Generator produced no significant output");
+    }
+
+    #[test]
+    fn test_extreme_modulation_no_negative_frequency() {
+        let params = FmSynthParams::new(vec![10], vec![10.0], 0.1, 2.0);
+        let mod_env = AdsrGenerator::new(1.0, 100, 100, 1.0, 1000, 100);
+        let wav_env = AdsrGenerator::new(1.0, 100, 100, 1.0, 1000, 100);
+        let mut fm = FmSynthGenerator::new(params, mod_env, wav_env);
+
+        let mut buffer = vec![0.0f32; 1000];
+        fm.process(&mut buffer);
+
+        let final_phase = fm.phase();
+        assert!(
+            final_phase >= 0.0 && final_phase < 2.0 * PI,
+            "Phase out of valid range: {}",
+            final_phase
+        );
     }
 }

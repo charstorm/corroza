@@ -333,4 +333,12 @@ mod tests {
         assert!(parse_event("xc#d").is_err()); // invalid octave
         assert!(parse_event("4xd").is_err()); // invalid note
     }
+
+    #[test]
+    fn test_large_timestep() {
+        let result = parse_line("+1000000| 4c#d");
+        assert!(result.is_ok());
+        let timed = result.unwrap();
+        assert_eq!(timed.delta, 1000000);
+    }
 }
