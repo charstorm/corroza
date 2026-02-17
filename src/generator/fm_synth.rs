@@ -159,6 +159,15 @@ impl FmSynthGenerator {
     pub fn sample_count(&self) -> usize {
         self.sample_count
     }
+
+    /// Trigger note off for both envelopes
+    ///
+    /// This starts the release phase for both the modulation and waveform envelopes.
+    /// The note will fade out according to the release settings.
+    pub fn note_off(&mut self) {
+        self.mod_env.note_off();
+        self.wav_env.note_off();
+    }
 }
 
 impl SignalGenerator for FmSynthGenerator {

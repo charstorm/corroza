@@ -14,3 +14,7 @@ path = "src/bin/plot-adsr.rs"
 [[bin]]
 name = "fm-synth"
 path = "src/bin/fm-synth.rs"
+
+[[bin]]
+name = "play"
+path = "src/bin/play.rs"
