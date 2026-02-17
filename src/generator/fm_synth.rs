@@ -447,4 +447,171 @@ mod tests {
         fm.process(&mut buffer);
         assert_eq!(fm.sample_count(), 20);
     }
+
+    #[test]
+    fn test_output_not_silent() {
+        let params = FmSynthParams::new(vec![2, 5], vec![1.0, 0.5], 0.1, 1.0);
+        let mod_env = AdsrGenerator::new(0.0, 100, 200, 0.8, 8000, 200);
+        let wav_env = AdsrGenerator::new(0.0, 100, 200, 0.8, 8000, 200);
+        let mut fm = FmSynthGenerator::new(params, mod_env, wav_env);
+
+        let mut buffer = vec![0.0f32; 16000];
+        fm.process(&mut buffer);
+
+        let sum: f32 = buffer.iter().map(|&s| s.abs()).sum();
+        let mean_amp = sum / buffer.len() as f32;
+
+        assert!(
+            mean_amp > 0.1,
+            "Mean amplitude {} is too low (expected > 0.1)",
+            mean_amp
+        );
+    }
+
+    #[test]
+    fn test_frame_boundary_continuity_low_modulation() {
+        let params = FmSynthParams::new(vec![1], vec![1.0], 0.05, 0.0);
+        let mod_env = AdsrGenerator::new(1.0, 10, 10, 1.0, 1000, 10);
+        let wav_env = AdsrGenerator::new(1.0, 10, 10, 1.0, 1000, 10);
+        let mut fm = FmSynthGenerator::new(params, mod_env, wav_env);
+
+        let frame_size = 64;
+        let mut buffer1 = vec![0.0f32; frame_size];
+        let mut buffer2 = vec![0.0f32; frame_size];
+
+        fm.process(&mut buffer1);
+        fm.process(&mut buffer2);
+
+        let last_sample = buffer1[frame_size - 1];
+        let first_sample = buffer2[0];
+        let diff = (last_sample - first_sample).abs();
+
+        assert!(
+            diff < 0.1,
+            "Frame boundary discontinuity: {} (expected < 0.1)",
+            diff
+        );
+    }
+
+    #[test]
+    fn test_output_size_respects_params() {
+        let sample_rate = 16000;
+        let frame_duration_ms = 10;
+        let expected_samples = sample_rate * frame_duration_ms / 1000;
+
+        let params = FmSynthParams::new(vec![], vec![], 0.1, 0.0);
+        let mod_env = AdsrGenerator::new(1.0, 10, 10, 1.0, 1000, 10);
+        let wav_env = AdsrGenerator::new(1.0, 10, 10, 1.0, 1000, 10);
+        let mut fm = FmSynthGenerator::new(params, mod_env, wav_env);
+
+        let mut buffer = vec![0.0f32; expected_samples];
+        fm.process(&mut buffer);
+
+        assert_eq!(
+            buffer.len(),
+            expected_samples,
+            "Buffer size {} does not match expected {}",
+            buffer.len(),
+            expected_samples
+        );
+    }
+
+    #[test]
+    fn test_no_clipping() {
+        let params = FmSynthParams::new(vec![2, 5, 9], vec![2.0, 3.0, 2.0], 0.1, 2.0);
+        let mod_env = AdsrGenerator::new(0.0, 100, 200, 1.0, 8000, 200);
+        let wav_env = AdsrGenerator::new(0.0, 100, 200, 1.0, 8000, 200);
+        let mut fm = FmSynthGenerator::new(params, mod_env, wav_env);
+
+        let mut buffer = vec![0.0f32; 16000];
+        fm.process(&mut buffer);
+
+        for (i, &sample) in buffer.iter().enumerate() {
+            assert!(
+                sample >= -1.0 && sample <= 1.0,
+                "Sample {} clips: {} (outside [-1.0, 1.0])",
+                i,
+                sample
+            );
+        }
+    }
+
+    #[test]
+    fn test_note_off_triggers_release() {
+        let params = FmSynthParams::new(vec![1], vec![1.0], 0.1, 1.0);
+        let mod_env = AdsrGenerator::new(0.0, 100, 100, 0.8, 10000, 100);
+        let wav_env = AdsrGenerator::new(0.0, 100, 100, 0.8, 10000, 100);
+        let mut fm = FmSynthGenerator::new(params, mod_env, wav_env);
+
+        let mut buffer = vec![0.0f32; 200];
+        fm.process(&mut buffer);
+
+        let amp_before_note_off =
+            buffer.iter().map(|&s| s.abs()).sum::<f32>() / buffer.len() as f32;
+
+        fm.note_off();
+
+        let mut buffer2 = vec![0.0f32; 200];
+        fm.process(&mut buffer2);
+
+        let amp_after_note_off =
+            buffer2.iter().map(|&s| s.abs()).sum::<f32>() / buffer2.len() as f32;
+
+        assert!(
+            amp_after_note_off < amp_before_note_off,
+            "Amplitude should decrease after note_off: before={}, after={}",
+            amp_before_note_off,
+            amp_after_note_off
+        );
+    }
+
+    #[test]
+    fn test_realistic_parameters_16k() {
+        let sample_rate = 16000;
+        let params = FmSynthParams::new(vec![2, 3], vec![0.5, 0.3], 0.05, 1.0);
+
+        let attack_samples = (0.01 * sample_rate as f32) as usize;
+        let decay_samples = (0.1 * sample_rate as f32) as usize;
+        let sustain_samples = (0.5 * sample_rate as f32) as usize;
+        let release_samples = (0.2 * sample_rate as f32) as usize;
+
+        let mod_env = AdsrGenerator::new(
+            0.0,
+            attack_samples,
+            decay_samples,
+            0.6,
+            sustain_samples,
+            release_samples,
+        );
+        let wav_env = AdsrGenerator::new(
+            0.0,
+            attack_samples,
+            decay_samples,
+            0.7,
+            sustain_samples,
+            release_samples,
+        );
+
+        let mut fm = FmSynthGenerator::new(params, mod_env, wav_env);
+
+        let frame_size = 64;
+        let total_frames = 500;
+        let mut has_output = false;
+
+        for _ in 0..total_frames {
+            let mut buffer = vec![0.0f32; frame_size];
+            let state = fm.process(&mut buffer);
+
+            let frame_amp = buffer.iter().map(|&s| s.abs()).sum::<f32>() / frame_size as f32;
+            if frame_amp > 0.01 {
+                has_output = true;
+            }
+
+            if state == GeneratorState::Complete {
+                break;
+            }
+        }
+
+        assert!(has_output, "Generator produced no significant output");
+    }
 }
